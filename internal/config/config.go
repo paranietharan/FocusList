@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -17,6 +18,12 @@ type Config struct {
 	DBHost     string
 	DBPort     string
 	DBName     string
+
+	// Redis configuration
+	RedisAddr     string
+	RedisUsername string
+	RedisPassword string
+	RedisDB       int
 }
 
 var (
@@ -48,13 +55,36 @@ func LoadConfig() *Config {
 			log.Fatal("Missing JWT_SECRET_KEY in environment")
 		}
 
+		// Redis configuration
+		redisAddr := os.Getenv("REDIS_ADDR")
+		redisUsername := os.Getenv("REDIS_USERNAME")
+		redisPassword := os.Getenv("REDIS_PASSWORD")
+		redisDB := os.Getenv("REDIS_DB")
+
+		if redisAddr == "" || redisUsername == "" || redisPassword == "" || redisDB == "" {
+			log.Fatal("Redis configuration is not set in the environment variables")
+		}
+
+		dbInt, err := strconv.Atoi(redisDB)
+		if err != nil {
+			log.Fatalf("Invalid Redis DB number: %v", err)
+		}
+
 		cfg = &Config{
-			JWTSecret:  jwtSecret,
+			JWTSecret: jwtSecret,
+
+			// Database configuration
 			DBUsername: username,
 			DBPassword: password,
 			DBHost:     host,
 			DBPort:     port,
 			DBName:     database,
+
+			// Redis configuration
+			RedisAddr:     redisAddr,
+			RedisUsername: redisUsername,
+			RedisPassword: redisPassword,
+			RedisDB:       dbInt,
 		}
 	})
 

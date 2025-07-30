@@ -1,6 +1,7 @@
 package service
 
 import (
+	"FocusList/internal/cache"
 	"FocusList/internal/model"
 	"FocusList/internal/repository"
 	"FocusList/internal/utils"
@@ -9,7 +10,8 @@ import (
 )
 
 type AuthService struct {
-	UserRepo *repository.UserRepository
+	UserRepo  *repository.UserRepository
+	CacheRepo *cache.CacheService
 }
 
 func (s *AuthService) Register(user *model.User, plainPassword string) error {

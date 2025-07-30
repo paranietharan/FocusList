@@ -1,12 +1,14 @@
 package main
 
 import (
+	"FocusList/internal/cache"
 	"FocusList/internal/config"
 	"FocusList/internal/database"
 	"FocusList/internal/handler"
 	"FocusList/internal/middleware"
 	"FocusList/internal/repository"
 	"FocusList/internal/service"
+	"context"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -39,8 +41,18 @@ func main() {
 	}
 	defer db.Close()
 
+	c := cache.NewCacheService(cache.RedisConfig{
+		Addr:     cfg.RedisAddr,
+		Username: cfg.RedisUsername,
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	}, context.Background())
+
 	userRepo := repository.NewUserRepository(db)
-	authSvc := &service.AuthService{UserRepo: userRepo}
+	authSvc := &service.AuthService{
+		UserRepo:  userRepo,
+		CacheRepo: c,
+	}
 	authHandler := &handler.AuthHandler{AuthService: authSvc}
 
 	r := gin.Default()
