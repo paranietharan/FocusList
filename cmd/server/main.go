@@ -2,11 +2,11 @@ package main
 
 import (
 	"FocusList/internal/config"
+	"FocusList/internal/database"
 	"FocusList/internal/handler"
 	"FocusList/internal/middleware"
 	"FocusList/internal/repository"
 	"FocusList/internal/service"
-	"database/sql"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -21,8 +21,18 @@ func main() {
 		log.Fatal("Failed to load configuration")
 	}
 
-	connStr := "postgres://" + cfg.DBUsername + ":" + cfg.DBPassword + "@" + cfg.DBHost + ":" + cfg.DBPort + "/" + cfg.DBName + "?sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+	dbconfig := database.Config{
+		DBUsername: cfg.DBUsername,
+		DBPassword: cfg.DBPassword,
+		DBHost:     cfg.DBHost,
+		DBPort:     cfg.DBPort,
+		DBName:     cfg.DBName,
+	}
+	db, err := database.GetDB(dbconfig)
+	if err != nil {
+		log.Fatal("Failed to connect to the database:", err)
+	}
+	defer db.Close()
 
 	if err != nil {
 		log.Fatal(err)

@@ -24,14 +24,11 @@ func (s *AuthService) Register(user *model.User, plainPassword string) error {
 }
 
 func (s *AuthService) Login(email, password string) (string, error) {
-	fmt.Println("Input password:", password)
 	user, err := s.UserRepo.GetUserByEmail(email)
 	if err != nil {
 		log.Println("Error fetching user:", err)
 		return "", fmt.Errorf("invalid credentials")
 	}
-	fmt.Println("Input password:", password)   //TODO: Remove the debug logs
-	fmt.Println("Stored hash:", user.Password) //TODO: Remove the debug logs
 	if err := utils.CheckPasswordHash(password, user.Password); err != nil {
 		return "", fmt.Errorf("invalid credentials")
 	}
