@@ -36,6 +36,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "registered successfully"})
 }
 
+func (h *AuthHandler) VerifyEmail(c *gin.Context) {
+	var input struct {
+		Email string `json:"email"`
+		Code  string `json:"code"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
+	err := h.AuthService.VerifyEmail(input.Email, input.Code)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "verification failed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "email verified successfully"})
+}
+
 func (h *AuthHandler) Login(c *gin.Context) {
 	var input struct {
 		Email    string `json:"email"`

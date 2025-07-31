@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -47,8 +48,8 @@ func NewCacheService(cfg RedisConfig, ctx context.Context) *CacheService {
 	}
 }
 
-func (cs *CacheService) Set(key string, value string) error {
-	return cs.redisClient.Set(cs.ctx, key, value, 0).Err()
+func (cs *CacheService) Set(key string, value string, ttl time.Duration) error {
+	return cs.redisClient.Set(cs.ctx, key, value, ttl).Err()
 }
 
 func (cs *CacheService) Get(key string) (string, error) {
@@ -64,4 +65,18 @@ func (cs *CacheService) Get(key string) (string, error) {
 func (cs *CacheService) Ping() error { // check redis conn
 	status := cs.redisClient.Ping(cs.ctx)
 	return status.Err()
+}
+
+func (cs *CacheService) StoreBytes(key string, value []byte, ttl time.Duration) error {
+	return cs.redisClient.Set(cs.ctx, key, value, ttl).Err()
+}
+
+func (cs *CacheService) GetBytes(key string) ([]byte, error) {
+	val, err := cs.redisClient.Get(cs.ctx, key).Bytes()
+	if err == redis.Nil {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return val, nil
 }

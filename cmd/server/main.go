@@ -64,6 +64,7 @@ func main() {
 	r := gin.Default()
 
 	r.POST("/register", authHandler.Register)
+	r.POST("/verify-email", authHandler.VerifyEmail)
 	r.POST("/login", authHandler.Login)
 
 	r.GET("/profile", middleware.AuthMiddleware("super_admin"), func(c *gin.Context) {
