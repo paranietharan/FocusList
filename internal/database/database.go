@@ -18,6 +18,7 @@ func GetDB(cfg Config) (*sql.DB, error) {
 	once.Do(func() {
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 			cfg.DBUsername, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+		fmt.Printf("Connection String: %s\n", connStr)
 		dbInstance, err = sql.Open("postgres", connStr)
 		if err != nil {
 			return

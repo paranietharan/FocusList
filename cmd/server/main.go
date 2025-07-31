@@ -46,7 +46,13 @@ func main() {
 		Username: cfg.RedisUsername,
 		Password: cfg.RedisPassword,
 		DB:       cfg.RedisDB,
+		Port:     cfg.RedisPort,
 	}, context.Background())
+
+	err = c.Ping()
+	if err != nil {
+		log.Fatal("Failed to connect to Redis:", err)
+	}
 
 	userRepo := repository.NewUserRepository(db)
 	authSvc := &service.AuthService{

@@ -24,6 +24,7 @@ type Config struct {
 	RedisUsername string
 	RedisPassword string
 	RedisDB       int
+	RedisPort     string
 }
 
 var (
@@ -60,8 +61,10 @@ func LoadConfig() *Config {
 		redisUsername := os.Getenv("REDIS_USERNAME")
 		redisPassword := os.Getenv("REDIS_PASSWORD")
 		redisDB := os.Getenv("REDIS_DB")
+		redisPort := os.Getenv("REDIS_PORT")
 
-		if redisAddr == "" || redisUsername == "" || redisPassword == "" || redisDB == "" {
+		if redisAddr == "" || redisDB == "" {
+			log.Printf("Redis Details: REDIS_ADDR: %s, REDIS_USERNAME: %s, REDIS_PASSWORD: %s, REDIS_DB: %s", redisAddr, redisUsername, redisPassword, redisDB)
 			log.Fatal("Redis configuration is not set in the environment variables")
 		}
 
@@ -85,6 +88,7 @@ func LoadConfig() *Config {
 			RedisUsername: redisUsername,
 			RedisPassword: redisPassword,
 			RedisDB:       dbInt,
+			RedisPort:     redisPort,
 		}
 	})
 
