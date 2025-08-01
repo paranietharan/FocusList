@@ -113,3 +113,75 @@ func (s *AuthService) Login(email, password string) (string, error) {
 	}
 	return utils.GenerateJWT(user.Email, string(user.Role))
 }
+
+func (s *AuthService) SendResetPasswordEmail(email string) error {
+	user, err := s.UserRepo.GetUserByEmail(email)
+	if err != nil {
+		log.Println("Error fetching user for password reset:", err)
+		return fmt.Errorf("user not found")
+	}
+
+	if !user.IsActive {
+		log.Println("User is not active for password reset:", email)
+		return fmt.Errorf("user is not active")
+	}
+
+	code := utils.GenerateVerificationCode(6)
+	userCodeRedisKey := fmt.Sprintf("reset_code:%s", email)
+	if err := s.CacheRepo.Set(userCodeRedisKey, code, 10*time.Minute); err != nil {
+		log.Println("Error setting reset password code in cache:", err)
+		return fmt.Errorf("failed to set reset password code in cache: %w", err)
+	}
+
+	fmt.Printf("Reset password code for %s: %s\n", email, code)
+	return nil
+}
+
+func (s *AuthService) ConfirmResetPassword(email, code, newPassword string) error {
+	userCodeRedisKey := fmt.Sprintf("reset_code:%s", email)
+	storedCode, err := s.CacheRepo.Get(userCodeRedisKey)
+	if err != nil {
+		log.Println("Error getting reset password code from cache:", err)
+		return fmt.Errorf("failed to get reset password code from cache: %w", err)
+	}
+
+	if storedCode == "" {
+		log.Println("No reset password code found for email in cache:", email)
+		return fmt.Errorf("no reset password code found for email: %s", email)
+	}
+
+	sc, err1 := strconv.Atoi(storedCode)
+	if err1 != nil {
+		log.Println("Error converting stored code to integer:", err1)
+		return fmt.Errorf("invalid reset password code format")
+	}
+	c, err2 := strconv.Atoi(code)
+	if err2 != nil {
+		log.Println("Error converting provided code to integer:", err2)
+		return fmt.Errorf("invalid reset password code format")
+	}
+
+	if sc != c {
+		log.Println("Reset password code mismatch")
+		return fmt.Errorf("reset password code does not match")
+	}
+
+	user, err := s.UserRepo.GetUserByEmail(email)
+	if err != nil {
+		log.Println("Error fetching user for password reset:", err)
+		return fmt.Errorf("user not found")
+	}
+
+	hash, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+	user.Password = hash
+
+	if err := s.UserRepo.UpdateUser(user); err != nil {
+		log.Println("Error updating user password:", err)
+		return fmt.Errorf("failed to update user password: %w", err)
+	}
+
+	return nil
+}

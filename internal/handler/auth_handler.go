@@ -69,3 +69,38 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+// Forgot Password
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var input struct {
+		Email string `json:"email"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
+	err := h.AuthService.SendResetPasswordEmail(input.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send reset email"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "reset password email sent"})
+}
+
+func (h *AuthHandler) ConfirmResetPassword(c *gin.Context) {
+	var input struct {
+		Email       string `json:"email"`
+		Code        string `json:"code"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
+	err := h.AuthService.ConfirmResetPassword(input.Email, input.Code, input.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "reset password failed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "password reset successfully"})
+}

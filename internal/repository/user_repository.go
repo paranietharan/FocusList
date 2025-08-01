@@ -48,3 +48,17 @@ func (r *UserRepository) CreateUser(user *model.User) error {
 	}
 	return nil
 }
+
+func (r *UserRepository) UpdateUser(user *model.User) error {
+	query := `
+	UPDATE users
+	SET first_name = $1, last_name = $2, password = $3, updated_at = $4, is_active = $5, role = $6
+	WHERE email = $7
+	`
+	updatedAt := time.Now().Format(time.RFC3339)
+	_, err := r.db.Exec(query, user.FirstName, user.LastName, user.Password, updatedAt, user.IsActive, user.Role, user.Email)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	return nil
+}
