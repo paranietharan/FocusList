@@ -75,5 +75,14 @@ func main() {
 		})
 	})
 
+	r.GET("/hi", middleware.AuthMiddleware("user"), func(c *gin.Context) {
+		email := c.GetString("userEmail")
+		c.JSON(200, gin.H{
+			"email":   email,
+			"message": "Hello, user!",
+			"role":    c.GetString("userRole"),
+		})
+	})
+
 	r.Run(":8080")
 }

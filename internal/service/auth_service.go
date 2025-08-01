@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -54,18 +55,46 @@ func (s *AuthService) VerifyEmail(email, code string) error {
 		return fmt.Errorf("failed to get verification code from cache: %w", err)
 	}
 
-	if storedCode != code {
-		return fmt.Errorf("invalid verification code")
+	// TODO: Remove the debug logs
+	fmt.Printf("Stored code for %s: %s\n", email, storedCode)
+	fmt.Printf("Provided code for %s: %s\n", email, code)
+
+	if storedCode == "" {
+		log.Println("No verification code found for email in cache:", email)
+		return fmt.Errorf("no verification code found for email: %s", email)
 	}
 
-	user, err := s.UserRepo.GetUserByEmail(email)
+	sc, err1 := strconv.Atoi(storedCode)
+	if err1 != nil {
+		log.Println("Error converting stored code to integer:", err1)
+		return fmt.Errorf("invalid verification code format")
+	}
+	c, err2 := strconv.Atoi(code)
+	if err2 != nil {
+		log.Println("Error converting provided code to integer:", err2)
+		return fmt.Errorf("invalid verification code format")
+	}
+
+	if sc != c {
+		log.Println("Verification code mismatch")
+		return fmt.Errorf("verification code does not match")
+	}
+
+	userDetailRedisKey := fmt.Sprintf("user:%s", email)
+	userData, err := s.CacheRepo.GetBytes(userDetailRedisKey)
 	if err != nil {
-		log.Println("Error fetching user by email:", err)
-		return fmt.Errorf("user not found")
+		log.Println("Error getting user data from cache:", err)
+		return fmt.Errorf("failed to get user data from cache: %w", err)
+	}
+
+	var user model.User
+	if err := json.Unmarshal(userData, &user); err != nil {
+		log.Println("Error unmarshalling user data:", err)
+		return fmt.Errorf("failed to unmarshal user data: %w", err)
 	}
 
 	user.IsActive = true
-	if err := s.UserRepo.CreateUser(user); err != nil {
+	if err := s.UserRepo.CreateUser(&user); err != nil {
 		log.Println("Error updating user:", err)
 		return fmt.Errorf("failed to update user: %w", err)
 	}
