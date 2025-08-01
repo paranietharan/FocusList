@@ -3,6 +3,8 @@ package utils
 import (
 	"math/rand"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func GenerateVerificationCode(length int) string {
@@ -14,4 +16,8 @@ func GenerateVerificationCode(length int) string {
 		code[i] = digits[rand.Intn(len(digits))]
 	}
 	return string(code)
+}
+
+func GenerateUniqueUUID() string {
+	return uuid.New().String()
 }

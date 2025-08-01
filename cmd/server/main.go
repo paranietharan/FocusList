@@ -54,6 +54,7 @@ func main() {
 		log.Fatal("Failed to connect to Redis:", err)
 	}
 
+	// user
 	userRepo := repository.NewUserRepository(db)
 	authSvc := &service.AuthService{
 		UserRepo:  userRepo,
@@ -61,16 +62,26 @@ func main() {
 	}
 	authHandler := &handler.AuthHandler{AuthService: authSvc}
 
+	// bucket
+	bucketRepo := repository.NewTodoListBucketRepository(db)
+	bucketSvc := &service.TodoListBucketService{
+		TodoListBucketRepo: bucketRepo,
+	}
+	bucketHandler := &handler.BucketHandler{
+		TodoListBucketService: bucketSvc,
+	}
+
+	// Initialize Gin router
 	r := gin.Default()
 
+	// Login and Singup routes
 	r.POST("/login", authHandler.Login)
-
 	r.POST("/register", authHandler.Register)
 	r.POST("/verify-email", authHandler.VerifyEmail)
-
 	r.POST("/reset-password", authHandler.ForgotPassword)
 	r.POST("/confirm-reset-password", authHandler.ConfirmResetPassword)
 
+	// TODO: Check endpoint Need to remove this in production
 	r.GET("/profile", middleware.AuthMiddleware("super_admin"), func(c *gin.Context) {
 		email := c.GetString("userEmail")
 		c.JSON(200, gin.H{
@@ -78,7 +89,7 @@ func main() {
 			"role":  c.GetString("userRole"),
 		})
 	})
-
+	// TODO: Check endpoint Need to remove this in production
 	r.GET("/hi", middleware.AuthMiddleware("user"), func(c *gin.Context) {
 		email := c.GetString("userEmail")
 		c.JSON(200, gin.H{
@@ -87,6 +98,91 @@ func main() {
 			"role":    c.GetString("userRole"),
 		})
 	})
+
+	// TodoList Bucket Management
+	r.POST("/buckets", middleware.AuthMiddleware("user"), bucketHandler.CreateBucket)
+	r.GET("/buckets", middleware.AuthMiddleware("user"), bucketHandler.GetBuckets)
+	/*
+		-------------------------------------------------------------------
+		1️⃣ TodoList Bucket Management (/buckets)
+		-------------------------------------------------------------------
+		- [POST]    /buckets
+		    → Create a new bucket
+
+		- [GET]     /buckets
+		    → List all buckets for the authenticated user
+
+		- [GET]     /buckets/:bucketID
+		    → Get a specific bucket by ID
+
+		- [PUT]     /buckets/:bucketID
+		    → Update bucket name or details
+
+		- [DELETE]  /buckets/:bucketID
+		    → Delete a bucket
+
+		-------------------------------------------------------------------
+		2️⃣ Bucket Collaboration (Users & Permissions)
+		-------------------------------------------------------------------
+		- [POST]    /buckets/:bucketID/users
+		    → Add a user to a bucket with permission (read/write/execute)
+
+		- [GET]     /buckets/:bucketID/users
+		    → List all users and their permissions in the bucket
+
+		- [PUT]     /buckets/:bucketID/users/:userEmail
+		    → Update a user's permission in a bucket
+
+		- [DELETE]  /buckets/:bucketID/users/:userEmail
+		    → Remove a user from a bucket
+
+		> Restrict collaboration endpoints to users with ExecutePermission
+
+		-------------------------------------------------------------------
+		3️⃣ TodoList Item Management (/buckets/:bucketID/items)
+		-------------------------------------------------------------------
+		- [POST]    /buckets/:bucketID/items
+		    → Create a new todo item in the bucket
+
+		- [GET]     /buckets/:bucketID/items
+		    → List all items in the bucket
+
+		- [GET]     /buckets/:bucketID/items/:itemID
+		    → Get a specific todo item
+
+		- [PUT]     /buckets/:bucketID/items/:itemID
+		    → Update a todo item (description, status)
+
+		- [DELETE]  /buckets/:bucketID/items/:itemID
+		    → Delete a todo item
+
+		-------------------------------------------------------------------
+		4️⃣ Advanced Features (Optional Enhancements)
+		-------------------------------------------------------------------
+		- [PATCH]   /buckets/:bucketID/items/:itemID/complete
+		    → Mark item as complete
+
+		- [GET]     /buckets/:bucketID/items?isCompleted=true&q=urgent
+		    → Filter/search items by status or keywords
+
+		- Audit Logs
+		    → Track who updated what and when (optional future enhancement)
+
+		- Pagination & Sorting
+		    → Add support: ?page=1&limit=10&sort=createdAt
+
+		-------------------------------------------------------------------
+		🔐 Authorization Middleware Suggestions:
+		- Use "read", "write", "execute" permissions from `TodoListBucketUser`
+		- Wrap route groups using `middleware.AuthMiddleware(role...)`
+		- Determine permission on a per-bucket basis using middleware or service layer
+
+		-------------------------------------------------------------------
+
+		🛠️ Suggestion:
+		Implement these endpoints incrementally starting with Bucket Management, then Collaboration, followed by Item Management. This keeps the system testable and avoids scope creep.
+
+	*/
 
 	r.Run(":8080")
 }
