@@ -37,3 +37,55 @@ func (s *TodoListBucketService) GetBucketsByUserEmail(email string) ([]*model.To
 	}
 	return buckets, nil
 }
+
+func (s *TodoListBucketService) GetBucketByID(bucketID, userEmail string) (*model.TodoListBucket, error) {
+	if bucketID == "" {
+		return nil, fmt.Errorf("bucket ID is required")
+	}
+
+	bucket, err := s.TodoListBucketRepo.GetBucketByID(bucketID, userEmail)
+	if err != nil {
+		log.Println("Error retrieving bucket by ID:", err)
+		return nil, err
+	}
+	return bucket, nil
+}
+
+func (s *TodoListBucketService) UpdateBucketName(bucketID, newName, userEmail string) error {
+	if bucketID == "" || newName == "" {
+		return fmt.Errorf("bucket ID and new name are required")
+	}
+
+	err := s.TodoListBucketRepo.UpdateBucketName(bucketID, newName, userEmail)
+	if err != nil {
+		log.Println("Error updating bucket name:", err)
+		return err
+	}
+	return nil
+}
+
+func (s *TodoListBucketService) AddUserToBucket(bucketID, userEmail, email string) error {
+	if bucketID == "" || userEmail == "" {
+		return fmt.Errorf("bucket ID and user email are required")
+	}
+
+	err := s.TodoListBucketRepo.AddUserToBucket(bucketID, userEmail, email)
+	if err != nil {
+		log.Println("Error adding user to bucket:", err)
+		return err
+	}
+	return nil
+}
+
+func (s *TodoListBucketService) DeleteBucket(bucketID, userEmail string) error {
+	if bucketID == "" {
+		return fmt.Errorf("bucket ID is required")
+	}
+
+	err := s.TodoListBucketRepo.DeleteBucket(bucketID, userEmail)
+	if err != nil {
+		log.Println("Error deleting bucket:", err)
+		return err
+	}
+	return nil
+}

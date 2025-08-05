@@ -102,41 +102,18 @@ func main() {
 	// TodoList Bucket Management
 	r.POST("/buckets", middleware.AuthMiddleware("user"), bucketHandler.CreateBucket)
 	r.GET("/buckets", middleware.AuthMiddleware("user"), bucketHandler.GetBuckets)
+	r.GET("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.GetBucketByID)
+	r.PUT("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.UpdateBucketName)
+	r.PUT("/buckets/:bucketID/users", middleware.AuthMiddleware("user"), bucketHandler.AddUserToBucket)
+	r.DELETE("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.DeleteBucket)
+	//Update a user's permission in a bucket
+	//Remove a user from a bucket
+	//List all users and their permissions in the bucket
 	/*
-		-------------------------------------------------------------------
-		1️⃣ TodoList Bucket Management (/buckets)
-		-------------------------------------------------------------------
-		- [POST]    /buckets
-		    → Create a new bucket
 
-		- [GET]     /buckets
-		    → List all buckets for the authenticated user
-
-		- [GET]     /buckets/:bucketID
-		    → Get a specific bucket by ID
-
-		- [PUT]     /buckets/:bucketID
-		    → Update bucket name or details
-
-		- [DELETE]  /buckets/:bucketID
-		    → Delete a bucket
 
 		-------------------------------------------------------------------
-		2️⃣ Bucket Collaboration (Users & Permissions)
-		-------------------------------------------------------------------
-		- [POST]    /buckets/:bucketID/users
-		    → Add a user to a bucket with permission (read/write/execute)
 
-		- [GET]     /buckets/:bucketID/users
-		    → List all users and their permissions in the bucket
-
-		- [PUT]     /buckets/:bucketID/users/:userEmail
-		    → Update a user's permission in a bucket
-
-		- [DELETE]  /buckets/:bucketID/users/:userEmail
-		    → Remove a user from a bucket
-
-		> Restrict collaboration endpoints to users with ExecutePermission
 
 		-------------------------------------------------------------------
 		3️⃣ TodoList Item Management (/buckets/:bucketID/items)
