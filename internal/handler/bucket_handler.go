@@ -93,6 +93,22 @@ func (h *BucketHandler) UpdateBucketName(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Bucket name updated successfully"})
 }
 
+func (h *BucketHandler) DeleteBucket(c *gin.Context) {
+	bucketID := c.Param("bucketID")
+	if bucketID == "" {
+		c.JSON(400, gin.H{"error": "Bucket ID is required"})
+		return
+	}
+
+	email := c.GetString("userEmail")
+	err := h.TodoListBucketService.DeleteBucket(bucketID, email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to delete bucket"})
+		return
+	}
+	c.JSON(200, gin.H{"message": "Bucket deleted successfully"})
+}
+
 func (h *BucketHandler) AddUserToBucket(c *gin.Context) {
 	bucketID := c.Param("bucketID")
 	if bucketID == "" {
@@ -120,20 +136,4 @@ func (h *BucketHandler) AddUserToBucket(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"message": "User added to bucket successfully"})
-}
-
-func (h *BucketHandler) DeleteBucket(c *gin.Context) {
-	bucketID := c.Param("bucketID")
-	if bucketID == "" {
-		c.JSON(400, gin.H{"error": "Bucket ID is required"})
-		return
-	}
-
-	email := c.GetString("userEmail")
-	err := h.TodoListBucketService.DeleteBucket(bucketID, email)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to delete bucket"})
-		return
-	}
-	c.JSON(200, gin.H{"message": "Bucket deleted successfully"})
 }

@@ -33,7 +33,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "registration failed"})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "registered successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Enter the verification code"})
 }
 
 func (h *AuthHandler) VerifyEmail(c *gin.Context) {

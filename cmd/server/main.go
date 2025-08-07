@@ -99,67 +99,23 @@ func main() {
 		})
 	})
 
-	// TodoList Bucket Management
 	r.POST("/buckets", middleware.AuthMiddleware("user"), bucketHandler.CreateBucket)
 	r.GET("/buckets", middleware.AuthMiddleware("user"), bucketHandler.GetBuckets)
 	r.GET("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.GetBucketByID)
 	r.PUT("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.UpdateBucketName)
-	r.PUT("/buckets/:bucketID/users", middleware.AuthMiddleware("user"), bucketHandler.AddUserToBucket)
 	r.DELETE("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.DeleteBucket)
-	//Update a user's permission in a bucket
-	//Remove a user from a bucket
-	//List all users and their permissions in the bucket
-	/*
 
+	r.PUT("/buckets/:bucketID/users", middleware.AuthMiddleware("user"), bucketHandler.AddUserToBucket)
+	//r.PUT("/buckets/:bucketID/users/:userID/permissions", middleware.AuthMiddleware("user"), bucketHandler.UpdateUserPermissions)
+	//r.DELETE("/buckets/:bucketID/users/:userID", middleware.AuthMiddleware("user"), bucketHandler.RemoveUserFromBucket)
+	//r.GET("/buckets/:bucketID/users", middleware.AuthMiddleware("user"), bucketHandler.GetBucketUsers)
 
-		-------------------------------------------------------------------
-
-
-		-------------------------------------------------------------------
-		3️⃣ TodoList Item Management (/buckets/:bucketID/items)
-		-------------------------------------------------------------------
-		- [POST]    /buckets/:bucketID/items
-		    → Create a new todo item in the bucket
-
-		- [GET]     /buckets/:bucketID/items
-		    → List all items in the bucket
-
-		- [GET]     /buckets/:bucketID/items/:itemID
-		    → Get a specific todo item
-
-		- [PUT]     /buckets/:bucketID/items/:itemID
-		    → Update a todo item (description, status)
-
-		- [DELETE]  /buckets/:bucketID/items/:itemID
-		    → Delete a todo item
-
-		-------------------------------------------------------------------
-		4️⃣ Advanced Features (Optional Enhancements)
-		-------------------------------------------------------------------
-		- [PATCH]   /buckets/:bucketID/items/:itemID/complete
-		    → Mark item as complete
-
-		- [GET]     /buckets/:bucketID/items?isCompleted=true&q=urgent
-		    → Filter/search items by status or keywords
-
-		- Audit Logs
-		    → Track who updated what and when (optional future enhancement)
-
-		- Pagination & Sorting
-		    → Add support: ?page=1&limit=10&sort=createdAt
-
-		-------------------------------------------------------------------
-		🔐 Authorization Middleware Suggestions:
-		- Use "read", "write", "execute" permissions from `TodoListBucketUser`
-		- Wrap route groups using `middleware.AuthMiddleware(role...)`
-		- Determine permission on a per-bucket basis using middleware or service layer
-
-		-------------------------------------------------------------------
-
-		🛠️ Suggestion:
-		Implement these endpoints incrementally starting with Bucket Management, then Collaboration, followed by Item Management. This keeps the system testable and avoids scope creep.
-
-	*/
+	//r.POST("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.CreateItem)
+	//r.GET("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.GetItems)
+	//r.GET("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.GetItemByID)
+	//r.PUT("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.UpdateItem)
+	//r.DELETE("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.DeleteItem)
+	//r.PATCH("/buckets/:bucketID/items/:itemID/complete", middleware.AuthMiddleware("user"), itemHandler.MarkItemComplete)
 
 	r.Run(":8080")
 }
