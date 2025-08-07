@@ -2,6 +2,7 @@ package handler
 
 import (
 	"FocusList/internal/service"
+	"encoding/json"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -136,4 +137,45 @@ func (h *BucketHandler) AddUserToBucket(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"message": "User added to bucket successfully"})
+}
+
+func (h *BucketHandler) RemoveUserFromBucket(c *gin.Context) {
+	bucketID := c.Param("bucketID")
+	if bucketID == "" {
+		c.JSON(400, gin.H{"error": "Bucket ID is required"})
+		return
+	}
+	email := c.GetString("userEmail")
+	userEmail := c.GetString("userEmail")
+	if email == "" {
+		c.JSON(400, gin.H{"error": "User email is required"})
+		return
+	}
+
+	err := h.TodoListBucketService.RemoveUserFromBucket(bucketID, email, userEmail)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to remove user from bucket"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "User removed from bucket successfully"})
+}
+
+func (h *BucketHandler) GetBucketUsers(c *gin.Context) {
+	bucketID := c.Param("bucketID")
+	if bucketID == "" {
+		c.JSON(400, gin.H{"error": "Bucket ID is required"})
+	}
+
+	users, err := h.TodoListBucketService.GetBucketUsers(bucketID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to retrieve bucket users"})
+		return
+	}
+
+	res, err := json.Marshal(users)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to marshal bucket users"})
+	}
+	c.JSON(200, gin.H{"users": string(res)})
 }

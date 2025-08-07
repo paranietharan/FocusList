@@ -1,6 +1,7 @@
 package service
 
 import (
+	"FocusList/internal/dto"
 	"FocusList/internal/model"
 	"FocusList/internal/repository"
 	"FocusList/internal/utils"
@@ -88,4 +89,45 @@ func (s *TodoListBucketService) DeleteBucket(bucketID, userEmail string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *TodoListBucketService) GetBucketUsers(bucketID string) ([]*dto.TodoListBucketUserDTO, error) {
+	if bucketID == "" {
+		return nil, fmt.Errorf("bucket ID is required")
+	}
+
+	users, err := s.TodoListBucketRepo.GetBucketUsersByBucketID(bucketID)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (s *TodoListBucketService) RemoveUserFromBucket(bucketID, userEmail, email string) error {
+	if bucketID == "" || userEmail == "" || email == "" {
+		fmt.Errorf("bucket ID and user email are required")
+		return fmt.Errorf("bucket ID and user email are required")
+	}
+
+	// check if the user have permission to remove the user
+	users, err := s.TodoListBucketRepo.GetBucketUsersByBucketID(bucketID)
+	if err != nil {
+		return err
+	}
+
+	deletePermission := false
+	for _, user := range users {
+		if user.UserEmail == userEmail {
+			deletePermission = true
+			break
+		}
+	}
+	if !deletePermission {
+		fmt.Errorf("user %s is not in bucket %s", userEmail, bucketID)
+		return fmt.Errorf("user %s is not in bucket %s", userEmail, bucketID)
+	}
+
+	err = s.TodoListBucketRepo.RemoveUserFromBucket(bucketID, email)
+
+	return err
 }

@@ -87,16 +87,17 @@ func main() {
 	// Test Endpoint
 	r.GET("/test", middleware.AuthMiddleware("user"), testHandler.UserDetailsCheck)
 
+	// Bucket
 	r.POST("/buckets", middleware.AuthMiddleware("user"), bucketHandler.CreateBucket)
 	r.GET("/buckets", middleware.AuthMiddleware("user"), bucketHandler.GetBuckets)
 	r.GET("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.GetBucketByID)
 	r.PUT("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.UpdateBucketName)
 	r.DELETE("/buckets/:bucketID", middleware.AuthMiddleware("user"), bucketHandler.DeleteBucket)
 
+	// Bucket Management
 	r.PUT("/buckets/:bucketID/users", middleware.AuthMiddleware("user"), bucketHandler.AddUserToBucket)
-	//r.PUT("/buckets/:bucketID/users/:userID/permissions", middleware.AuthMiddleware("user"), bucketHandler.UpdateUserPermissions)
-	//r.DELETE("/buckets/:bucketID/users/:userID", middleware.AuthMiddleware("user"), bucketHandler.RemoveUserFromBucket)
-	//r.GET("/buckets/:bucketID/users", middleware.AuthMiddleware("user"), bucketHandler.GetBucketUsers)
+	r.DELETE("/buckets/:bucketID/users/:userEmail", middleware.AuthMiddleware("user"), bucketHandler.RemoveUserFromBucket)
+	r.GET("/buckets/:bucketID/users/", middleware.AuthMiddleware("user"), bucketHandler.GetBucketUsers)
 
 	//r.POST("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.CreateItem)
 	//r.GET("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.GetItems)

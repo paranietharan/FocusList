@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"FocusList/internal/dto"
 	"FocusList/internal/model"
 	"database/sql"
 	"fmt"
@@ -142,5 +143,89 @@ func (r *TodoListBucketRepository) DeleteBucket(bucketID, userEmail string) erro
 		fmt.Println("Error deleting bucket:", err)
 		return err
 	}
+	return nil
+}
+
+func (r *TodoListBucketRepository) GetBucketUsersByBucketID(bucketID string) ([]*dto.TodoListBucketUserDTO, error) {
+	if bucketID == "" {
+		return nil, fmt.Errorf("bucket ID is required")
+	}
+
+	query := `
+	SELECT 
+		u.email, 
+		u.first_name, 
+		u.last_name, 
+		u.password
+	FROM 
+		users u
+	INNER JOIN 
+		todo_list_bucket_users bu ON u.email = bu.user_email
+	WHERE 
+		bu.bucket_id = $1
+	`
+
+	rows, err := r.db.Query(query, bucketID)
+	if err != nil {
+		fmt.Println("Error querying bucket users:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*dto.TodoListBucketUserDTO
+	for rows.Next() {
+		var user dto.TodoListBucketUserDTO
+		if err := rows.Scan(&user.UserEmail, &user.FirstName, &user.LastName, &user.Password); err != nil {
+			fmt.Println("Error scanning user row:", err)
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *TodoListBucketRepository) RemoveUserFromBucket(bucketID, email string) error {
+	if bucketID == "" || email == "" {
+		return fmt.Errorf("bucket ID and email are required")
+	}
+
+	countQuery := `
+		SELECT COUNT(*) FROM todo_list_bucket_users 
+		WHERE bucket_id = $1
+	`
+	var count int
+	err := r.db.QueryRow(countQuery, bucketID).Scan(&count)
+	if err != nil {
+		fmt.Println("Error checking user count for bucket:", err)
+		return err
+	}
+	if count <= 1 {
+		return fmt.Errorf("cannot remove the last user from the bucket")
+	}
+
+	deleteQuery := `
+		DELETE FROM todo_list_bucket_users 
+		WHERE bucket_id = $1 AND user_email = $2
+	`
+	res, err := r.db.Exec(deleteQuery, bucketID, email)
+	if err != nil {
+		fmt.Println("Error removing user from bucket:", err)
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		fmt.Println("Error checking affected rows:", err)
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("no matching user found in bucket")
+	}
+
 	return nil
 }
