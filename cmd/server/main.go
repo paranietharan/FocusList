@@ -74,6 +74,15 @@ func main() {
 		TodoListBucketService: bucketSvc,
 	}
 
+	// item
+	itemRepo := repository.NewItemRepository(db)
+	itemSvc := &service.ItemService{
+		ItemRepo: itemRepo,
+	}
+	itemHandler := &handler.ItemHandler{
+		ItemService: itemSvc,
+	}
+
 	// Initialize Gin router
 	r := gin.Default()
 
@@ -99,12 +108,11 @@ func main() {
 	r.DELETE("/buckets/:bucketID/users/:userEmail", middleware.AuthMiddleware("user"), bucketHandler.RemoveUserFromBucket)
 	r.GET("/buckets/:bucketID/users/", middleware.AuthMiddleware("user"), bucketHandler.GetBucketUsers)
 
-	//r.POST("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.CreateItem)
-	//r.GET("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.GetItems)
-	//r.GET("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.GetItemByID)
-	//r.PUT("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.UpdateItem)
-	//r.DELETE("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.DeleteItem)
-	//r.PATCH("/buckets/:bucketID/items/:itemID/complete", middleware.AuthMiddleware("user"), itemHandler.MarkItemComplete)
+	r.POST("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.CreateItem)
+	r.GET("/buckets/:bucketID/items", middleware.AuthMiddleware("user"), itemHandler.GetItems)
+	r.GET("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.GetItemByID)
+	r.PUT("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.UpdateItem)
+	r.DELETE("/buckets/:bucketID/items/:itemID", middleware.AuthMiddleware("user"), itemHandler.DeleteItem)
 
 	r.Run(":8080")
 }
