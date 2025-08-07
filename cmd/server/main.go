@@ -54,6 +54,9 @@ func main() {
 		log.Fatal("Failed to connect to Redis:", err)
 	}
 
+	// test
+	testHandler := &handler.TestHandler{}
+
 	// user
 	userRepo := repository.NewUserRepository(db)
 	authSvc := &service.AuthService{
@@ -81,23 +84,8 @@ func main() {
 	r.POST("/reset-password", authHandler.ForgotPassword)
 	r.POST("/confirm-reset-password", authHandler.ConfirmResetPassword)
 
-	// TODO: Check endpoint Need to remove this in production
-	r.GET("/profile", middleware.AuthMiddleware("super_admin"), func(c *gin.Context) {
-		email := c.GetString("userEmail")
-		c.JSON(200, gin.H{
-			"email": email,
-			"role":  c.GetString("userRole"),
-		})
-	})
-	// TODO: Check endpoint Need to remove this in production
-	r.GET("/hi", middleware.AuthMiddleware("user"), func(c *gin.Context) {
-		email := c.GetString("userEmail")
-		c.JSON(200, gin.H{
-			"email":   email,
-			"message": "Hello, user!",
-			"role":    c.GetString("userRole"),
-		})
-	})
+	// Test Endpoint
+	r.GET("/test", middleware.AuthMiddleware("user"), testHandler.UserDetailsCheck)
 
 	r.POST("/buckets", middleware.AuthMiddleware("user"), bucketHandler.CreateBucket)
 	r.GET("/buckets", middleware.AuthMiddleware("user"), bucketHandler.GetBuckets)
